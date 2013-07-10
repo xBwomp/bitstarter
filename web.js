@@ -4,6 +4,7 @@ var fs = require('fs');
 var express = require('express');
 
 var inFile = "index.html";
+var buffer = new buffer();
 
 var app = express.createServer(express.logger());
 
