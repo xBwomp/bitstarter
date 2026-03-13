@@ -1,16 +1,45 @@
-var fs = require('fs');
-var express = require('express');
+const fs = require('node:fs');
+const path = require('node:path');
+const http = require('node:http');
 
-var inFile = "index.html";
-var buffer = new Buffer(fs.readFileSync(inFile), "utf-8");
+const indexPath = path.join(__dirname, 'index.html');
 
-var app = express.createServer(express.logger());
+const serveFile = (response, filePath, contentType) => {
+  const data = fs.readFileSync(filePath, 'utf-8');
+  response.writeHead(200, { 'Content-Type': contentType });
+  response.end(data);
+};
 
-app.get('/', function(request, response) {
-   response.send(buffer.toString("utf-8"));
+const createServer = () => http.createServer((request, response) => {
+  if (request.url === '/' || request.url === '/index.html') {
+    serveFile(response, indexPath, 'text/html; charset=utf-8');
+    return;
+  }
+
+  if (request.url.startsWith('/assets/')) {
+    const assetPath = path.join(__dirname, request.url);
+    if (!fs.existsSync(assetPath)) {
+      response.writeHead(404);
+      response.end('Not found');
+      return;
+    }
+
+    const contentType = assetPath.endsWith('.css')
+      ? 'text/css; charset=utf-8'
+      : 'application/javascript; charset=utf-8';
+    serveFile(response, assetPath, contentType);
+    return;
+  }
+
+  response.writeHead(404);
+  response.end('Not found');
 });
 
-var port = process.env.PORT || 5000;
-app.listen(port, function() {
-  console.log("Listening on " + port);
-});
+if (require.main === module) {
+  const port = process.env.PORT || 5000;
+  createServer().listen(port, () => {
+    console.log(`Listening on ${port}`);
+  });
+}
+
+module.exports = { createServer };

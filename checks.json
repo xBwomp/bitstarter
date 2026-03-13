@@ -1,2 +1,6 @@
-["h1", 
- ".navigation"]
+[
+  "h1",
+  ".navbar",
+  ".faq",
+  ".progress"
+]
